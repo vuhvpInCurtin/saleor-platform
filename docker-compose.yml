@@ -30,16 +30,16 @@ services:
       - backend.env
     environment:
       - JAEGER_AGENT_HOST=jaeger
-      - STOREFRONT_URL=http://localhost:3000/
-      - DASHBOARD_URL=http://localhost:9000/
-      - ALLOWED_HOSTS=localhost,api
+      - STOREFRONT_URL=http://192.168.64.7:3001/
+      - DASHBOARD_URL=http://192.168.64.7:9001/
+      - ALLOWED_HOSTS=localhost,api,192.168.64.7
 
   react-storefront:
     build:
       context: ./react-storefront
       dockerfile: ./Dockerfile.dev
     ports:
-      - 3000:3000
+      - 3001:3000
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -67,7 +67,7 @@ services:
     # Nginx is used to proxy SSR requests thru docker networking
     command: sh -c '(nginx &) && pnpm turbo run dev --parallel --cache-dir=.turbo'
     environment:
-      - NEXT_PUBLIC_API_URI=http://localhost:8000/graphql/
+      - NEXT_PUBLIC_API_URI=http://192.168.64.7:8000/graphql/
       - NEXT_PUBLIC_HOMEPAGE_MENU=navbar
 
   dashboard:
@@ -75,12 +75,14 @@ services:
       context: ./saleor-dashboard
       dockerfile: ./Dockerfile.dev
     ports:
-      - 9000:9000
+      - 9001:9000
     restart: unless-stopped
     volumes:
       - ./saleor-dashboard/:/app:cached
       - /app/node_modules/
     command: npm start -- --host 0.0.0.0
+    environment:
+      - API_URI=http://192.168.64.7:8000/graphql/
 
   db:
     image: library/postgres:13-alpine
@@ -146,7 +148,7 @@ services:
     image: mailhog/mailhog
     ports:
       - 1025:1025 # smtp server
-      - 8025:8025 # web ui. Visit http://localhost:8025/ to check emails
+      - 8025:8025 # web ui. Visit http://192.168.64.7:8025/ to check emails
     restart: unless-stopped
     networks:
       - saleor-backend-tier
